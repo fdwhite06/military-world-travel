@@ -4,6 +4,11 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Military World Travel — USAREUR Germany</title>
+<link rel="icon" href="/favicon.ico" sizes="any"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"/>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
+<meta property="og:title" content="Military World Travel"/>
+<meta property="og:image" content="https://military-world-travel.netlify.app/mwt-icon.png"/>
 <style>
 /* required styles */
 
@@ -669,8 +674,38 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;flex-direction:column;height:100vh;background:#1a1a2e}
-#header{padding:10px 16px;background:#0f3460;color:#fff;display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap}
-#header h1{font-size:15px;font-weight:600}
+#header{padding:8px 16px;background:#04294A;color:#fff;display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap}
+#header h1{font-size:15px;font-weight:600;line-height:0}
+#header h1 img{height:46px;width:auto;display:block}
+#header-contribute{margin-left:auto;background:#C9962E;color:#04294A;border:0;border-radius:6px;font-weight:700;font-size:13px;padding:9px 14px;cursor:pointer}
+#header-contribute:hover{background:#E0B24A}
+#view-switcher{margin-left:0!important}
+.contrib-cta{display:block;width:100%;margin:12px 0;background:#04294A;color:#fff;border:0;border-radius:6px;font-size:13px;font-weight:600;padding:10px;cursor:pointer;text-align:center}
+.contrib-cta:hover{background:#0B3C66}
+#contrib-modal{position:fixed;inset:0;background:rgba(2,30,57,.6);z-index:5000;display:none;align-items:flex-start;justify-content:center;padding:24px 12px;overflow-y:auto}
+#contrib-modal.open{display:flex}
+#contrib-modal.picking{display:none}
+#contrib-box{background:#fff;color:#1b2733;border-radius:10px;max-width:520px;width:100%;padding:20px;font-size:14px;line-height:1.45}
+#contrib-box h2{font-size:19px;color:#04294A;margin-bottom:4px}
+#contrib-box .lead{color:#44525f;margin-bottom:14px}
+#contrib-box label{display:block;font-weight:600;font-size:13px;margin:12px 0 4px}
+#contrib-box label .opt{font-weight:400;color:#5b6875}
+#contrib-box input[type=text],#contrib-box input[type=email],#contrib-box input[type=number],#contrib-box select,#contrib-box textarea{width:100%;font:inherit;padding:9px;border:1px solid #9AA6B2;border-radius:6px;background:#fff;color:#1b2733}
+#contrib-box textarea{min-height:110px;resize:vertical}
+#contrib-box .row{display:flex;gap:10px}
+#contrib-box .row>div{flex:1;min-width:0}
+#contrib-box .hint{font-size:12px;color:#5b6875;margin-top:3px}
+#contrib-box .agree{display:flex;gap:8px;font-weight:400;font-size:12.5px;align-items:flex-start;margin:10px 0}
+#contrib-box .agree input{margin-top:3px;flex-shrink:0}
+#contrib-box .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+#contrib-box .actions button,#contrib-pick{font:inherit;font-weight:600;border-radius:6px;padding:10px 16px;cursor:pointer;border:1px solid #04294A}
+#contrib-send{background:#04294A;color:#fff}
+#contrib-cancel{background:#fff;color:#04294A}
+#contrib-pick{background:#fff;color:#04294A;width:100%;margin-top:0}
+#contrib-err{color:#A61B12;font-size:13px;margin-top:10px;display:none}
+#contrib-done{display:none;text-align:center;padding:18px 4px}
+#contrib-pickbar{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:5001;background:#04294A;color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;display:none;max-width:92vw}
+.mwt-hide{position:absolute!important;left:-9999px!important}
 #header .sub{font-size:11px;opacity:.65}
 #view-switcher{display:flex;gap:5px;margin-left:auto}
 .vbtn{font-size:11px;padding:4px 10px;border-radius:16px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;cursor:pointer;transition:all .15s}
@@ -729,9 +764,10 @@ input[type=range]{width:100%;accent-color:#EF9F27;cursor:pointer}
 <body>
 <div id="header">
   <div>
-    <h1>&#127758; Military World Travel</h1>
+    <h1><img src="/mwt-logo-header-reversed.svg" alt="Military World Travel" width="178" height="46"/></h1>
     <div class="sub">U.S. Army Installations — Germany · Use the year slider to travel through time</div>
   </div>
+  <button id="header-contribute" type="button" onclick="openContribute()">Add what you remember</button>
   <div id="view-switcher">
     <button class="vbtn active" id="vbtn-street" onclick="setView('street')">Street</button>
     <button class="vbtn" id="vbtn-satellite" onclick="setView('satellite')">Satellite</button>
@@ -761,18 +797,19 @@ input[type=range]{width:100%;accent-color:#EF9F27;cursor:pointer}
     <div id="ctrl">
       <div id="ctrl-title">Map Layers</div>
       <div id="toggles">
-        <div class="cb on" id="tog-yours" onclick="toggleLayer('yours')" style="background:#BA7517"><span class="dot" style="background:#fff"></span>Your posts</div>
+        <div class="cb on" id="tog-yours" onclick="toggleLayer('yours')" style="background:#BA7517"><span class="dot" style="background:#fff"></span>Founder's assignments</div>
         <div class="cb on" id="tog-hosp" onclick="toggleLayer('hosp')" style="background:#A32D2D"><span class="dot" style="background:#fff"></span>Hospitals</div>
         <div class="cb on" id="tog-posts" onclick="toggleLayer('posts')" style="background:#185FA5"><span class="dot" style="background:#fff"></span>Army posts</div>
         <div class="cb on" id="tog-afrc" onclick="toggleLayer('afrc')" style="background:#0F6E56"><span class="dot" style="background:#fff"></span>AFRC</div>
         <div class="cb on" id="tog-berlin" onclick="toggleLayer('berlin')" style="background:#993C1D"><span class="dot" style="background:#fff"></span>Berlin</div>
-        <div class="cb on" id="tog-home" onclick="toggleLayer('home')" style="background:#7B2D8B"><span class="dot" style="background:#fff"></span>My homes</div>
+        <div class="cb on" id="tog-community" onclick="toggleLayer('community')" style="background:#04294A"><span class="dot" style="background:#fff"></span>Community reports</div>
       </div>
     </div>
     <div id="ip">
       <div id="welcome">
+        <button class="contrib-cta" type="button" onclick="openContribute()">Stationed in Germany? Add what you remember</button>
         <h2>Click any marker on the map</h2>
-        <p>Gold star = your 3 assignments<br>Red H = 7th MEDCOM hospitals<br>Blue = Army posts<br>Green = AFRC<br>Coral = Berlin Brigade<br>Purple = your homes<br><br>Faded markers = closed at selected year</p>
+        <p>Gold star = founder's 3 assignments<br>Red H = 7th MEDCOM hospitals<br>Blue = Army posts<br>Green = AFRC<br>Coral = Berlin Brigade<br>White ? = reported by the community<br>Gold check = confirmed by the community<br><br>Faded markers = closed at selected year</p>
         <div class="zoom-btns">
           <button onclick="map.setView([50.1403,8.6948],15)">Frankfurt — 97th Hospital</button>
           <button onclick="map.setView([50.05383,10.17118],15)">Conn Barracks, Schweinfurt</button>
@@ -786,6 +823,7 @@ input[type=range]{width:100%;accent-color:#EF9F27;cursor:pointer}
         <div id="conf-bar"></div>
         <div id="pb"></div>
         <div id="ptg"></div>
+        <button class="contrib-cta" id="post-cta" type="button" onclick="openContribute(true)">Add to this page</button>
         <div id="cl-sec"><div id="cl-lbl">Satellite Clinics</div><div id="cl-grid"></div></div>
         <div id="src-sec"><div id="src-lbl">Sources and Archives</div><div id="src-list"></div></div>
       </div>
@@ -793,12 +831,13 @@ input[type=range]{width:100%;accent-color:#EF9F27;cursor:pointer}
     <div id="legend">
       <div id="legend-title">Legend</div>
       <div id="legend-items">
-        <div class="li"><span class="ld" style="background:#EF9F27;border:2px solid #BA7517"></span>Your assignments</div>
+        <div class="li"><span class="ld" style="background:#EF9F27;border:2px solid #BA7517"></span>Founder's assignments</div>
         <div class="li"><span class="ld" style="background:#E24B4A;border:2px solid #A32D2D"></span>Hospital</div>
         <div class="li"><span class="ld" style="background:#378ADD;border:2px solid #185FA5"></span>Army post</div>
         <div class="li"><span class="ld" style="background:#1D9E75;border:2px solid #0F6E56"></span>AFRC</div>
         <div class="li"><span class="ld" style="background:#D85A30;border:2px solid #993C1D"></span>Berlin Brigade</div>
-        <div class="li"><span class="ld" style="background:#9B59B6;border:2px solid #7B2D8B"></span>My homes</div>
+        <div class="li"><span class="ld" style="background:#fff;border:2px solid #04294A"></span>Reported</div>
+        <div class="li"><span class="ld" style="background:#F2CF76;border:2px solid #04294A"></span>Community confirmed</div>
         <div class="li" style="grid-column:1/-1;font-size:10px;color:#aaa;margin-top:3px">Faded = closed at selected year</div>
       </div>
     </div>
@@ -853,21 +892,21 @@ window.setView = function(v) {
 
 // Installation data
 const D=[
-  // ── YOUR THREE ASSIGNMENTS ──
-  {id:'conn',name:'Conn Barracks',sub:'Schweinfurt · Your 1st assignment',lat:50.05383,lon:10.17118,g:'yours',c:'#EF9F27',l:'★',s:24,open:1945,close:2014,
+  // ── FOUNDER'S THREE ASSIGNMENTS ──
+  {id:'conn',name:'Conn Barracks',sub:'Schweinfurt · Founder\'s 1st assignment',lat:50.05383,lon:10.17118,g:'yours',c:'#EF9F27',l:'★',s:24,open:1945,close:2014,
    body:'Former Luftwaffe Flugplatz, seized April 11, 1945 by the 42nd Infantry Division. Home of 1st Bde, 3rd Inf Div 1958–1996 — highest concentration of combat power of any post in West Germany. Later 2nd Bde, 1st Inf Div (1996–2008), then 172nd Inf Bde. Schweinfurt clinic was a satellite of Würzburg ACH. Returned to Germany Sept 19, 2014.',
-   tags:[{l:'Your 1st assignment',c:'ta'},{l:'Clinic → Würzburg ACH',c:'tr'},{l:'1st Bde 3rd Inf Div 1958–96',c:'tu'},{l:'Closed 2014',c:'ts'}],
+   tags:[{l:'Founder\'s 1st assignment',c:'ta'},{l:'Clinic → Würzburg ACH',c:'tr'},{l:'1st Bde 3rd Inf Div 1958–96',c:'tu'},{l:'Closed 2014',c:'ts'}],
    clinics:[],sources:[{l:'USArmyGermany.com: Schweinfurt photos & history',u:'https://www.usarmygermany.com/USAREUR_City_Schweinfurt.htm'},{l:'Mihalko Family: Conn Barracks photos & maps',u:'http://www.mihalko-family.com/Conn%20Barracks.htm'},{l:'Corps of Engineers site map PDF',u:'https://cdn0.scrvt.com/8a7fb8c945e2d564ea89e3facb7da507/c5f16fd49e839676/2553f131e4dd/conn_master_all.pdf'},{l:'Wikipedia: USAG Schweinfurt',u:'https://en.wikipedia.org/wiki/U.S._Army_Garrison_Schweinfurt'}],conf:'high',addr:'Near Geldersheim, Conn-Barracks-Straße, Schweinfurt (Fred confirmed coordinates)'},
 
-  {id:'97th',name:'USAH Frankfurt (97th General Hospital)',sub:'Frankfurt · Your 2nd assignment',lat:50.1403,lon:8.6948,g:'yours',c:'#EF9F27',l:'★',s:24,open:1945,close:1992,
+  {id:'97th',name:'USAH Frankfurt (97th General Hospital)',sub:'Frankfurt · Founder\'s 2nd assignment',lat:50.1403,lon:8.6948,g:'yours',c:'#EF9F27',l:'★',s:24,open:1945,close:1992,
    body:'Built Luftwaffe 1941. U.S. Army hospital from 1945, serving the Frankfurt Military Community. Redesignated USAH Frankfurt 1954. Address: Gießener Straße 30, 60435 Frankfurt am Main — on the east side of the Frankfurter Nordfriedhof (North Cemetery). Satellite clinics at Friedberg (Ray Barracks), Giessen, Darmstadt, Butzbach, and Hanau. Closed 1992. Now the U.S. Consulate General Frankfurt. Current address confirms exact location.',
-   tags:[{l:'Your 2nd assignment',c:'ta'},{l:'Hospital — 7th MEDCOM',c:'tr'},{l:'Closed 1992',c:'ts'},{l:'Now U.S. Consulate',c:'ts'}],
+   tags:[{l:'Founder\'s 2nd assignment',c:'ta'},{l:'Hospital — 7th MEDCOM',c:'tr'},{l:'Closed 1992',c:'ts'},{l:'Now U.S. Consulate',c:'ts'}],
    clinics:[{n:'Ray Barracks clinic',d:'Friedberg · 3rd Armored Div'},{n:'Gibbs Kaserne clinic',d:'Giessen'},{n:'Kelley Barracks clinic',d:'Darmstadt'},{n:'Linden Kaserne clinic',d:'Butzbach'},{n:'Hanau area clinic',d:'Pioneer/Fliegerhorst'}],
    sources:[{l:'Columbia.edu: rare 1952 aerial photo',u:'https://www.columbia.edu/~fdc/.tmp/ffmmisc/97thgeneral_1952.html'}],conf:'high',addr:'Gießener Straße 30, 60435 Frankfurt am Main'},
 
-  {id:'nach',name:'Heidelberg Army Hospital (130th Sta Hosp)',sub:'Nachrichten Kaserne, Heidelberg · Your 3rd assignment',lat:49.37552,lon:8.68556,g:'yours',c:'#EF9F27',l:'★',s:24,open:1945,close:2013,
+  {id:'nach',name:'Heidelberg Army Hospital (130th Sta Hosp)',sub:'Nachrichten Kaserne, Heidelberg · Founder\'s 3rd assignment',lat:49.37552,lon:8.68556,g:'yours',c:'#EF9F27',l:'★',s:24,open:1945,close:2013,
    body:'HQ of 7th Medical Command — parent of entire USAREUR medical network. Flagship 750-bed facility, built 1937–1939. Gen. George S. Patton died here December 21, 1945. By 1980 serving 62,000 personnel. Closed 2013.',
-   tags:[{l:'Your 3rd assignment',c:'ta'},{l:'HQ 7th MEDCOM',c:'tr'},{l:'Gen. Patton died here',c:'ts'},{l:'Closed 2013',c:'ts'}],
+   tags:[{l:'Founder\'s 3rd assignment',c:'ta'},{l:'HQ 7th MEDCOM',c:'tr'},{l:'Gen. Patton died here',c:'ts'},{l:'Closed 2013',c:'ts'}],
    clinics:[{n:'Coleman Barracks clinic',d:'Mannheim'},{n:'Patrick Henry Village clinic',d:'Heidelberg housing'},{n:'Patton Barracks clinic',d:'Heidelberg-Kirchheim'},{n:'Tompkins Barracks clinic',d:'Schwetzingen'},{n:'Germersheim Depot clinic',d:'Rhine logistics'}],
    sources:[{l:'Wikimedia Commons: 24 kaserne photos',u:'https://commons.wikimedia.org/wiki/Category:Nachrichten_Kaserne'},{l:'Stars & Stripes: final retreat 2013',u:'https://www.stripes.com/news/2013-07-01/nachrichten-kaserne-latest-us-facility-in-heidelberg-to-close-1841797.html1'}],conf:'high',addr:'Karlsruher Straße area, Rohrbach, 69126 Heidelberg (pin checked on satellite)'},
 
@@ -1081,13 +1120,8 @@ const D=[
   {id:"haaf",name:"Heidelberg Army Airfield",sub:"Airfield \u00b7 Closed 2013",lat:49.39259,lon:8.6539,g:'posts',c:'#378ADD',l:"",s:12,open:1945,close:2013,body:"Army airfield serving HQ USAREUR, in the Pfaffengrund district.",tags:[{l:"Closed 2013",c:"ts"},{l:"Army aviation",c:"tu"}],clinics:[],sources:[{l:"USArmyGermany.com: Heidelberg photos & history",u:"https://www.usarmygermany.com/USAREUR_City_Heidelberg.htm"}],conf:"high",addr:"Pfaffengrund, Heidelberg (pin checked on satellite)"},
   {id:"kilbourne",name:"Kilbourne Kaserne, Schwetzingen",sub:"Kaserne \u00b7 Closed",lat:49.40698,lon:8.56071,g:'posts',c:'#378ADD',l:"",s:12,open:1945,close:2013,body:"Kaserne near Schwetzingen. Now a conversion site. Closing year approximate.",tags:[{l:"Closed",c:"ts"}],clinics:[],sources:[{l:"USArmyGermany.com: Heidelberg photos & history",u:"https://www.usarmygermany.com/USAREUR_City_Heidelberg.htm"}],conf:"high",addr:"Friedrichsfelder Landstra\u00dfe, Schwetzingen (pin checked on satellite)"},
   {id:"hammonds",name:"Hammonds Barracks, Mannheim-Seckenheim",sub:"Barracks \u00b7 Closed",lat:49.4711,lon:8.55205,g:'posts',c:'#378ADD',l:"",s:12,open:1945,close:2013,body:"Barracks in Mannheim-Seckenheim. Now a conversion site. Closing year approximate.",tags:[{l:"Closed",c:"ts"}],clinics:[],sources:[{l:"USArmyGermany.com: Heidelberg photos & history",u:"https://www.usarmygermany.com/USAREUR_City_Heidelberg.htm"}],conf:"medium",addr:"Seckenheim, Mannheim (matched by name in OpenStreetMap)"},
-  {id:"holbeinring",name:"Home: Holbeinring 15",sub:"Rohrbach, Heidelberg \u00b7 Personal",lat:49.38223,lon:8.68557,g:'home',c:'#9B59B6',l:"\u2302",s:20,open:1990,close:9999,body:"Holbeinring 15, 69126 Heidelberg-Rohrbach. Home during a Heidelberg assignment, close to Nachrichten Kaserne.",tags:[{l:"Your home in Heidelberg",c:"tv"},{l:"Near Nachrichten Kaserne",c:"ts"}],clinics:[],sources:[],conf:"high",addr:"Holbeinring 15, 69126 Heidelberg (pin checked on satellite)"},
 
   {id:'hd_px',name:'Heidelberg Shopping Center (PX compound)',sub:'Heidelberg · Closed ~2013',lat:49.40368,lon:8.66980,g:'posts',c:'#378ADD',l:'',s:12,open:1950,close:2013,body:"Main PX and shopping compound for the Heidelberg military community, just west of the Hauptbahnhof. The area also held the housing office and other support facilities, with a German Kantine across the street from the PX. Closing year approximate.",tags:[{l:'PX / shopping',c:'tu'},{l:'Housing office',c:'ts'},{l:'German Kantine across the street',c:'ts'}],clinics:[],sources:[{l:'Wikipedia: USAG Heidelberg',u:'https://en.wikipedia.org/wiki/United_States_Army_Garrison_Heidelberg'},{l:'USArmyGermany.com: Heidelberg photos & history',u:'https://www.usarmygermany.com/USAREUR_City_Heidelberg.htm'}],conf:'high',addr:'Southwest of Heidelberg Hauptbahnhof (pin checked on satellite)'},
-  // ── MY HOMES ──
-  {id:'kronungen',name:'First House — Schlossgasse 17',sub:'Kronungen (97490) · Near Schweinfurt · Personal',lat:50.018,lon:10.171,g:'home',c:'#9B59B6',l:'⌂',s:20,open:1992,close:9999,
-   body:'Schlossgasse 17, 97490 Kronungen — first home in Germany, a small Franconian village approximately 5km southwest of Schweinfurt and about 2km from Conn Barracks. Typical of the off-post village housing many soldiers chose in the Franconia countryside.',
-   tags:[{l:'Your 1st house in Germany',c:'tv'},{l:'~2km from Conn Barracks',c:'ts'},{l:'Kronungen village',c:'ts'}],clinics:[],sources:[],conf:'high',addr:'Schlossgasse 17, 97490 Kronungen'},
 ];
 
 
@@ -1095,13 +1129,14 @@ const D=[
 function makeIcon(color, size, label, faded) {
   var r = (size||14)/2;
   var dk = {'#EF9F27':'#BA7517','#E24B4A':'#A32D2D','#378ADD':'#185FA5',
-             '#1D9E75':'#0F6E56','#D85A30':'#993C1D','#9B59B6':'#7B2D8B'};
+             '#1D9E75':'#0F6E56','#D85A30':'#993C1D','#9B59B6':'#7B2D8B','#FFFFFF':'#04294A','#F2CF76':'#04294A'};
   var stroke = dk[color] || '#333';
   var inner = '';
   var sz = size||14;
   if(label==='★') inner='<text x="'+r+'" y="'+(r+4)+'" text-anchor="middle" font-size="'+Math.round(sz*.52)+'" font-weight="700" fill="'+(faded?'#999':'#633806')+'" font-family="sans-serif">&#9733;</text>';
   else if(label==='H') inner='<text x="'+r+'" y="'+(r+3)+'" text-anchor="middle" font-size="'+Math.round(sz*.44)+'" font-weight="600" fill="'+(faded?'#999':'#501313')+'" font-family="sans-serif">H</text>';
   else if(label==='⌂') inner='<text x="'+r+'" y="'+(r+3)+'" text-anchor="middle" font-size="'+Math.round(sz*.50)+'" font-weight="700" fill="'+(faded?'#999':'#fff')+'" font-family="sans-serif">&#8962;</text>';
+  else if(label==='?'||label==='✓') inner='<text x="'+r+'" y="'+(r+4)+'" text-anchor="middle" font-size="'+Math.round(sz*.6)+'" font-weight="700" fill="'+(faded?'#999':'#04294A')+'" font-family="sans-serif">'+label+'</text>';
   var fill = faded ? '#ccc' : color;
   var st   = faded ? '#aaa' : stroke;
   var op   = faded ? '0.3' : '1';
@@ -1110,18 +1145,18 @@ function makeIcon(color, size, label, faded) {
 }
 
 // Layer groups
-var layerOn={yours:true,hosp:true,posts:true,afrc:true,berlin:true,home:true};
+var layerOn={yours:true,hosp:true,posts:true,afrc:true,berlin:true,community:true};
 var groups={
   yours:L.layerGroup().addTo(map),
   hosp:L.layerGroup().addTo(map),
   posts:L.layerGroup().addTo(map),
   afrc:L.layerGroup().addTo(map),
   berlin:L.layerGroup().addTo(map),
-  home:L.layerGroup().addTo(map)
+  community:L.layerGroup().addTo(map),
 };
 var togStyles={
   yours:'background:#BA7517',hosp:'background:#A32D2D',posts:'background:#185FA5',
-  afrc:'background:#0F6E56',berlin:'background:#993C1D',home:'background:#7B2D8B'
+  afrc:'background:#0F6E56',berlin:'background:#993C1D',community:'background:#04294A'
 };
 
 window.toggleLayer = function(n) {
@@ -1148,7 +1183,7 @@ function renderYear(year) {
   D.forEach(function(p) {
     if(!layerOn[p.g]) return;
     var active=isOpen(p,year);
-    if(active) open++; else closed++;
+    if(p.g!=='community'){ if(active) open++; else closed++; }
     var icon=makeIcon(p.c, p.s||14, p.l||'', !active);
     var m=L.marker([p.lat,p.lon],{icon:icon,title:p.name,zIndexOffset:active?100:0});
     m.on('click',function(){showPost(p,year);});
@@ -1177,7 +1212,7 @@ function showPost(p,year) {
     :year>p.close&&p.close!==9999?'Closed in '+year+' (closed '+p.close+')'
     :p.close===9999?'Open in '+year+' - Still active today'
     :'Open in '+year+' - Closed '+p.close;
-  document.getElementById('ps').textContent=p.sub+' - '+status;
+  document.getElementById('ps').textContent=p.community?p.sub+' - Reported for '+p.open+' to '+p.close:p.sub+' - '+status;
   document.getElementById('pb').textContent=p.body;
   var te=document.getElementById('ptg'); te.innerHTML='';
   (p.tags||[]).forEach(function(t){
@@ -1194,6 +1229,10 @@ function showPost(p,year) {
     var lb={high:'Location verified',medium:'Location estimated',low:'Location uncertain'};
     cb.style.cssText=st[p.conf]+';padding:5px 8px;border-radius:6px;font-size:11px;margin:5px 0';
     cb.innerHTML='<strong>'+ic[p.conf]+' '+lb[p.conf]+'</strong>'+(p.addr?' - '+p.addr:'');
+  } else if(p.community) {
+    cb.style.display='block';
+    cb.style.cssText=(p.community==='confirmed'?'background:#FBF1D3;color:#5C4300':'background:#EEF2F6;color:#04294A')+';padding:5px 8px;border-radius:6px;font-size:11px;margin:5px 0';
+    cb.textContent=(p.community==='confirmed'?'Community confirmed by '+p.people+' people. ':'Reported by 1 person. ')+'Not yet verified. Pin location may be approximate.';
   } else cb.style.display='none';
   var cs=document.getElementById('cl-sec'),cg=document.getElementById('cl-grid');
   if(p.clinics&&p.clinics.length) {
@@ -1214,8 +1253,76 @@ function showPost(p,year) {
       a.textContent='Link: '+s.l; sl.appendChild(a);
     });
   } else ss.style.display='none';
+  currentPost=p;
+  document.getElementById('post-cta').textContent=p.community?'I remember this too':p.conf==='low'?'Help pin this location':'Were you here? Add what you remember';
   map.panTo([p.lat,p.lon]);
 }
+
+// ── Contributions ──
+var currentPost=null;
+var cForm,cModal,picking=false;
+function cEl(id){return document.getElementById(id);}
+window.openContribute=function(usePost){
+  cForm=cEl('contribution');cModal=cEl('contrib-modal');
+  cEl('contrib-done').style.display='none';cForm.style.display='block';cEl('contrib-err').style.display='none';
+  if(usePost&&currentPost){
+    cForm.elements.place.value=currentPost.name;
+    cForm.elements.place_id.value=currentPost.id||'';
+    if(currentPost.community){cForm.elements.kind.value='Confirmation of a community report';}
+    else if(currentPost.conf==='low'){cForm.elements.kind.value='Better pin location';}
+  }else{cForm.elements.place.value='';cForm.elements.place_id.value='';}
+  cModal.classList.add('open');
+  cForm.elements.place.focus();
+};
+window.closeContribute=function(){cEl('contrib-modal').classList.remove('open');};
+window.pickOnMap=function(){
+  picking=true;cEl('contrib-modal').classList.add('picking');
+  cEl('contrib-pickbar').style.display='block';map.getContainer().style.cursor='crosshair';
+};
+map.on('click',function(e){
+  if(!picking)return;
+  picking=false;
+  cForm.elements.suggested_lat.value=e.latlng.lat.toFixed(5);
+  cForm.elements.suggested_lon.value=e.latlng.lng.toFixed(5);
+  cEl('contrib-pickbar').style.display='none';map.getContainer().style.cursor='';
+  cEl('contrib-modal').classList.remove('picking');
+  cEl('contrib-pick').textContent='Spot chosen: '+cForm.elements.suggested_lat.value+', '+cForm.elements.suggested_lon.value+' (tap to change)';
+});
+window.sendContribution=function(ev){
+  ev.preventDefault();
+  var err=cEl('contrib-err');err.style.display='none';
+  var kind=cForm.elements.kind.value;
+  if((kind==='Better pin location'||kind==='A place missing from the map')&&!cForm.elements.suggested_lat.value){err.textContent='Please choose the spot on the map first.';err.style.display='block';return false;}
+  var f=cForm.elements.upload.files[0];
+  if(f&&f.size>7500000){err.textContent='That file is larger than 7.5 MB. Please choose a smaller one.';err.style.display='block';return false;}
+  var btn=cEl('contrib-send');btn.disabled=true;btn.textContent='Sending...';
+  fetch('/',{method:'POST',body:new FormData(cForm)}).then(function(r){
+    if(!r.ok)throw new Error('status '+r.status);
+    cForm.reset();cEl('contrib-pick').textContent='Choose the spot on the map';
+    cForm.style.display='none';cEl('contrib-done').style.display='block';
+  }).catch(function(){
+    err.textContent='That did not send. Please check your connection and try again.';err.style.display='block';
+  }).then(function(){btn.disabled=false;btn.textContent='Send for review';});
+  return false;
+};
+
+// Community layer: reviewed entries from community.json
+function addCommunity(list){
+  if(!Array.isArray(list))return;
+  list.forEach(function(e){
+    var lat=Number(e.lat),lon=Number(e.lon),from=Number(e.year_from),to=Number(e.year_to);
+    if(!e.id||!e.name||!isFinite(lat)||!isFinite(lon)||!from||!to)return;
+    var confirmed=e.status==='confirmed';
+    var ppl=Math.max(Number(e.people)||1,confirmed?2:1);
+    var src=(typeof e.reference_url==='string'&&/^https?:\/\//i.test(e.reference_url))?[{l:e.reference_label||'Reference',u:e.reference_url}]:[];
+    D.push({id:'c_'+e.id,name:String(e.name),sub:(e.type?String(e.type)+' · ':'')+'Community report',lat:lat,lon:lon,g:'community',
+      c:confirmed?'#F2CF76':'#FFFFFF',l:confirmed?'✓':'?',s:18,open:from,close:to,
+      body:String(e.details||'')+(e.credit?' Contributed by '+String(e.credit)+'.':''),
+      tags:[{l:from+'–'+to,c:'ts'}],clinics:[],sources:src,community:confirmed?'confirmed':'reported',people:ppl});
+  });
+  renderYear(currentYear);
+}
+fetch('/community.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():[];}).then(addCommunity).catch(function(){});
 
 // Init
 renderYear(1990);
@@ -1224,5 +1331,77 @@ setTimeout(function(){map.invalidateSize();},200);
 
 })();
 </script>
+<div id="contrib-pickbar">Click the exact spot on the map.</div>
+<div id="contrib-modal" role="dialog" aria-modal="true" aria-labelledby="contrib-title">
+<div id="contrib-box">
+<form id="contribution" name="contribution" method="POST" enctype="multipart/form-data" data-netlify="true" netlify-honeypot="bot-field" onsubmit="return sendContribution(event)">
+<input type="hidden" name="form-name" value="contribution"/>
+<input type="hidden" name="place_id"/>
+<input type="hidden" name="subject" value="New Military World Travel contribution"/>
+<div class="mwt-hide"><label>Leave this empty <input name="bot-field" tabindex="-1" autocomplete="off"/></label></div>
+<h2 id="contrib-title">Add what you remember</h2>
+<p class="lead">No one remembers everything. Share the part you know from your time there. Each accepted contribution earns credit toward a discount on a printed map.</p>
+<label for="c-place">Place</label>
+<input id="c-place" type="text" name="place" required placeholder="Post, kaserne, hospital, housing area, school"/>
+<label for="c-kind">What are you adding?</label>
+<select id="c-kind" name="kind" required>
+<option>Memory or story</option>
+<option>What was here (buildings, PX, clubs, clinics, schools)</option>
+<option>Correction to this page</option>
+<option>Photo, map, or document</option>
+<option>Better pin location</option>
+<option>A place missing from the map</option>
+<option>Confirmation of a community report</option>
+</select>
+<div class="row">
+<div><label for="c-from">From year</label><input id="c-from" type="number" name="year_from" min="1900" max="2030" required placeholder="1992"/></div>
+<div><label for="c-to">To year</label><input id="c-to" type="number" name="year_to" min="1900" max="2030" required placeholder="1994"/></div>
+</div>
+<label for="c-type">Type of place</label>
+<select id="c-type" name="place_type" required>
+<option>Post, kaserne, or barracks</option>
+<option>PX, commissary, or shoppette</option>
+<option>AAFES gas station</option>
+<option>Hospital or clinic</option>
+<option>School</option>
+<option>Housing area</option>
+<option>Chapel</option>
+<option>Club, gym, theater, or recreation</option>
+<option>Unit headquarters or motor pool</option>
+<option>Other</option>
+</select>
+<label for="c-tie">Your connection to this place</label>
+<select id="c-tie" name="connection" required>
+<option>I was stationed here</option>
+<option>I grew up here (military family)</option>
+<option>Military spouse or family</option>
+<option>I worked here as a civilian</option>
+<option>I live or lived nearby</option>
+<option>Researcher or historian</option>
+</select>
+<label for="c-unit">Unit or school <span class="opt">(optional)</span></label>
+<input id="c-unit" type="text" name="unit"/>
+<label for="c-details">Tell us what you know</label>
+<textarea id="c-details" name="details" required placeholder="What was there, where it stood, what you remember."></textarea>
+<label for="c-ref">Reference <span class="opt">(optional, but it helps us verify)</span></label>
+<input id="c-ref" type="text" name="reference" placeholder="Web link, old post map, phone directory, yearbook"/>
+<div class="hint">Tell us where this can be checked. If you have no reference, send it anyway and others can confirm it.</div>
+<label for="c-file">Photo, map, or document <span class="opt">(optional, up to 7.5 MB)</span></label>
+<input id="c-file" type="file" name="upload" accept=".jpg,.jpeg,.png,.pdf"/>
+<label>Pin on the map <span class="opt">(needed for a new place or better location)</span></label>
+<button id="contrib-pick" type="button" onclick="pickOnMap()">Choose the spot on the map</button>
+<input type="hidden" name="suggested_lat"/><input type="hidden" name="suggested_lon"/>
+<div class="row">
+<div><label for="c-name">Name to show <span class="opt">(optional)</span></label><input id="c-name" type="text" name="display_name" autocomplete="name"/></div>
+<div><label for="c-mail">Email</label><input id="c-mail" type="email" name="email" required autocomplete="email"/><div class="hint">Used for credit and your discount. Not published.</div></div>
+</div>
+<label class="agree"><input type="checkbox" name="rights_ok" value="yes" required/><span>This is my own memory, or I took this photo or have the right to share it. Military World Travel may publish, edit, and use it on the site and in printed products, with credit if I gave a name.</span></label>
+<label class="agree"><input type="checkbox" name="safety_ok" value="yes" required/><span>It includes no current security details, such as gate procedures, cameras, guard routines, or restricted areas, no current troop or mission details, and no private home addresses or personal information about other people.</span></label>
+<div id="contrib-err" role="alert"></div>
+<div class="actions"><button id="contrib-cancel" type="button" onclick="closeContribute()">Cancel</button><button id="contrib-send" type="submit">Send for review</button></div>
+</form>
+<div id="contrib-done" role="status"><h2>Thank you</h2><p class="lead" style="margin-top:8px">We received your contribution and will review it before it appears on the map.</p><div class="actions" style="justify-content:center"><button type="button" onclick="openContribute()">Add another</button><button type="button" onclick="closeContribute()">Close</button></div></div>
+</div>
+</div>
 </body>
 </html>
